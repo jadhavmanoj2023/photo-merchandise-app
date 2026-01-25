@@ -2,18 +2,18 @@
   "compilerOptions": {
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
 
-    "composite": true,
-    "noEmit": false,
-
     "target": "ES2023",
     "lib": ["ES2023"],
     "module": "ESNext",
     "types": ["node"],
     "skipLibCheck": true,
 
+    /* REQUIRED for project references */
+    "composite": true,
+    "noEmit": false,
+
     /* Bundler mode */
     "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
     "moduleDetection": "force",
 
@@ -27,4 +27,3 @@
   },
   "include": ["vite.config.ts"]
 }
-
