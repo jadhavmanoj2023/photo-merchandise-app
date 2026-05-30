@@ -8,6 +8,8 @@ import Signup from '../pages/Signup';
 import Profile from '../pages/Profile';
 import About from '../pages/About';
 import Contact from '../pages/Contact';
+import FrameCustomizer from '../pages/FrameCustomizer';
+import FrameGallery from '../pages/FrameGallery';
 
 export default function AppRoutes() {
   return (
@@ -21,6 +23,9 @@ export default function AppRoutes() {
       <Route path="/profile" element={<Profile />} />
       <Route path="/about" element={<About />} />
       <Route path="/contact" element={<Contact />} />
+
+      <Route path="/frames" element={<FrameGallery />} />
+      <Route path="/frame-customizer/:frameId" element={<FrameCustomizer />} />
     </Routes>
   );
 }
