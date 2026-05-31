@@ -11,6 +11,7 @@ import {
 } from '../data/catalog';
 import FrameThumbnail from '../components/FrameThumbnail';
 import Breadcrumbs from '../components/Breadcrumbs';
+import { getCollageGridStyle, getCollageSlotArea } from '../utils/collageLayout';
 
 // ─── Live frame canvas ────────────────────────────────────────────────────────
 
@@ -93,43 +94,7 @@ function FrameCanvas({
 
   const outerRadius = isCircle ? '50%' : frame.borderRadius;
 
-  // Collage slot layout
-  const getSlotLayouts = () => {
-    // Returns relative % positions (left, top, width, height) for each photo slot
-    const gap = 1.5; // percent
-    const layouts: { left: string; top: string; width: string; height: string }[] = [];
-    const photoAreaTop = `${totalInset}px`;
-    const photoAreaLeft = `${totalInset}px`;
-
-    if (frame.shape === 'collage-2') {
-      layouts.push(
-        { left: photoAreaLeft, top: photoAreaTop, width: `calc(100% - ${totalInset * 2}px)`, height: `calc(50% - ${totalInset}px - ${gap / 2}%)` },
-        { left: photoAreaLeft, top: `calc(50% + ${gap / 2}%)`, width: `calc(100% - ${totalInset * 2}px)`, height: `calc(50% - ${totalInset}px - ${gap / 2}%)` }
-      );
-    } else if (frame.shape === 'collage-3h') {
-      for (let i = 0; i < 3; i++) {
-        const w = `calc(33.33% - ${totalInset * 2 / 3}px - ${gap * 2 / 3}%)`;
-        layouts.push({ left: `calc(${totalInset}px + ${i * (33.33 + gap / 3)}%)`, top: photoAreaTop, width: w, height: `calc(100% - ${totalInset * 2}px)` });
-      }
-    } else if (frame.shape === 'collage-3v') {
-      for (let i = 0; i < 3; i++) {
-        const h = `calc(33.33% - ${totalInset * 2 / 3}px - ${gap * 2 / 3}%)`;
-        layouts.push({ left: photoAreaLeft, top: `calc(${totalInset}px + ${i * (33.33 + gap / 3)}%)`, width: `calc(100% - ${totalInset * 2}px)`, height: h });
-      }
-    } else if (frame.shape === 'collage-4') {
-      for (let r = 0; r < 2; r++) {
-        for (let c = 0; c < 2; c++) {
-          layouts.push({
-            left: `calc(${totalInset}px + ${c * (50 + gap / 2)}%)`,
-            top: `calc(${totalInset}px + ${r * (50 + gap / 2)}%)`,
-            width: `calc(50% - ${totalInset}px - ${gap / 2}%)`,
-            height: `calc(50% - ${totalInset}px - ${gap / 2}%)`,
-          });
-        }
-      }
-    }
-    return layouts;
-  };
+  const collageGridStyle = isCollage ? getCollageGridStyle(frame.shape, totalInset) : null;
 
   // ── Heart shape (CSS clip-path) ──
   const heartClip = `polygon(50% 0%, 100% 25%, 100% 62%, 50% 100%, 0% 62%, 0% 25%)`;
@@ -238,41 +203,59 @@ function FrameCanvas({
           )}
 
           {/* ── Photo slots (collage) ── */}
-          {isCollage && getSlotLayouts().map((layout, i) => (
-            <div
-              key={i}
-              onClick={() => onSlotClick(i)}
-              style={{
-                position: 'absolute',
-                left: layout.left, top: layout.top,
-                width: layout.width, height: layout.height,
-                overflow: 'hidden',
-                borderRadius: 2,
-                cursor: 'pointer',
-                border: activeSlot === i ? '2px solid #2563eb' : '2px solid transparent',
-                zIndex: 10,
-              }}
-            >
-              {slots[i] ? (
-                <img
-                  src={slots[i]} alt=""
-                  draggable={false}
+          {isCollage && collageGridStyle && (
+            <div style={collageGridStyle}>
+              {Array.from({ length: frame.photoSlots }).map((_, i) => (
+                <div
+                  key={i}
+                  onClick={() => onSlotClick(i)}
                   style={{
-                    width: '100%', height: '100%', objectFit: 'cover',
-                    transform: `scale(${zooms[i]}) translate(${offsets[i].x / zooms[i]}px,${offsets[i].y / zooms[i]}px)`,
-                    transformOrigin: 'center', pointerEvents: 'none',
+                    gridArea: getCollageSlotArea(frame.shape, i),
+                    overflow: 'hidden',
+                    borderRadius: 2,
+                    cursor: 'pointer',
+                    border: activeSlot === i ? '2px solid #e11d48' : '2px solid transparent',
+                    minHeight: 0,
+                    minWidth: 0,
                   }}
-                />
-              ) : (
-                <div style={{ width: '100%', height: '100%', background: '#ddd', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="1.5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-                  </svg>
-                  <span style={{ fontSize: 10, color: '#999' }}>Photo {i + 1}</span>
+                >
+                  {slots[i] ? (
+                    <img
+                      src={slots[i]}
+                      alt=""
+                      draggable={false}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        transform: `scale(${zooms[i]}) translate(${offsets[i].x / zooms[i]}px,${offsets[i].y / zooms[i]}px)`,
+                        transformOrigin: 'center',
+                        pointerEvents: 'none',
+                      }}
+                    />
+                  ) : (
+                    <div
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        background: '#ddd',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 4,
+                      }}
+                    >
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="1.5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                      </svg>
+                      <span style={{ fontSize: 10, color: '#999' }}>Photo {i + 1}</span>
+                    </div>
+                  )}
                 </div>
-              )}
+              ))}
             </div>
-          ))}
+          )}
 
           {/* ── Single photo slot ── */}
           {!isCollage && (

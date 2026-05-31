@@ -1,4 +1,5 @@
 import { FrameTemplate } from '../data/frameTemplates';
+import { getCollageSlotRects } from '../utils/collageLayout';
 
 interface Props {
   frame: FrameTemplate;
@@ -55,39 +56,8 @@ export default function FrameThumbnail({
   const rx = parseRadius(frame.borderRadius);
 
   // Collage slot helper
-  const getCollageSlots = () => {
-    const gap = 4;
-    const slots: { x: number; y: number; w: number; h: number }[] = [];
-    if (frame.shape === 'collage-2') {
-      const slotH = (innerH - gap) / 2;
-      slots.push({ x: totalInset, y: totalInset, w: innerW, h: slotH });
-      slots.push({ x: totalInset, y: totalInset + slotH + gap, w: innerW, h: slotH });
-    } else if (frame.shape === 'collage-3h') {
-      const slotW = (innerW - gap * 2) / 3;
-      for (let i = 0; i < 3; i++) {
-        slots.push({ x: totalInset + i * (slotW + gap), y: totalInset, w: slotW, h: innerH });
-      }
-    } else if (frame.shape === 'collage-3v') {
-      const slotH = (innerH - gap * 2) / 3;
-      for (let i = 0; i < 3; i++) {
-        slots.push({ x: totalInset, y: totalInset + i * (slotH + gap), w: innerW, h: slotH });
-      }
-    } else if (frame.shape === 'collage-4') {
-      const slotW = (innerW - gap) / 2;
-      const slotH = (innerH - gap) / 2;
-      for (let r = 0; r < 2; r++) {
-        for (let c = 0; c < 2; c++) {
-          slots.push({
-            x: totalInset + c * (slotW + gap),
-            y: totalInset + r * (slotH + gap),
-            w: slotW,
-            h: slotH,
-          });
-        }
-      }
-    }
-    return slots;
-  };
+  const getCollageSlots = () =>
+    getCollageSlotRects(frame.shape, totalInset, innerW, innerH);
 
   const heartPath = (cx: number, cy: number, sz: number) => {
     const s = sz / 2;

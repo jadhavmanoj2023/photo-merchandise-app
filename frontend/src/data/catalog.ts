@@ -237,6 +237,20 @@ export const catalogProducts: CatalogProduct[] = [
     thicknesses: ['3mm', '5mm', '8mm'],
   },
   {
+    id: 'col-5',
+    categorySlug: 'collage',
+    name: '5 Pics Collage Premium Acrylic Wall Photo',
+    frameTemplateId: 'collage-5',
+    price: 699,
+    originalPrice: 1299,
+    description:
+      'One large photo on the left with a 2×2 grid on the right — perfect for telling a story in five frames.',
+    image: 'https://images.unsplash.com/photo-1533090161767-e6ffed986c88?w=500',
+    sizes: portraitSizes,
+    thicknesses: ['3mm', '5mm', '8mm'],
+    stockLeft: 6,
+  },
+  {
     id: 'col-3v',
     categorySlug: 'collage',
     name: '3-Photo Vertical Collage',

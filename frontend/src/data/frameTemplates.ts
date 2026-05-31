@@ -12,6 +12,7 @@ export type FrameShape =
   | 'collage-3h'
   | 'collage-3v'
   | 'collage-4'
+  | 'collage-5'
   | 'dual-border-portrait'
   | 'dual-border-landscape'
   | 'dual-border-square'
@@ -375,6 +376,19 @@ export const frameTemplates: FrameTemplate[] = [
     aspectRatio: 1,
     borderRadius: '3px',
     photoSlots: 4,
+  },
+  {
+    id: 'collage-5',
+    name: 'Five Photo Collage',
+    category: 'Collage',
+    shape: 'collage-5',
+    borderColor: '#1a1a1a',
+    borderWidth: 12,
+    matColor: '#f5f0eb',
+    matWidth: 8,
+    aspectRatio: 4 / 3,
+    borderRadius: '3px',
+    photoSlots: 5,
   },
 
   // ── Creative ──────────────────────────────────────────────
