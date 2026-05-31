@@ -98,7 +98,7 @@ export default function About() {
             <h2 className="text-3xl font-bold mb-4">Ready to Create Something Special?</h2>
             <p className="text-xl mb-8">Start turning your memories into art today</p>
             <Link
-              to="/category"
+              to="/"
               className="inline-block bg-white text-blue-700 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition"
             >
               Browse Products

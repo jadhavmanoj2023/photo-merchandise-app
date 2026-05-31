@@ -38,7 +38,7 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link to="/category" className="text-gray-400 hover:text-white transition">
+                <Link to="/" className="text-gray-400 hover:text-white transition">
                   Categories
                 </Link>
               </li>
@@ -59,22 +59,22 @@ export default function Footer() {
             <h4 className="text-lg font-semibold mb-4">Categories</h4>
             <ul className="space-y-2">
               <li>
-                <Link to="/category" className="text-gray-400 hover:text-white transition">
+                <Link to="/" className="text-gray-400 hover:text-white transition">
                   Acrylic Photos
                 </Link>
               </li>
               <li>
-                <Link to="/category" className="text-gray-400 hover:text-white transition">
+                <Link to="/" className="text-gray-400 hover:text-white transition">
                   Wall Clocks
                 </Link>
               </li>
               <li>
-                <Link to="/category" className="text-gray-400 hover:text-white transition">
+                <Link to="/" className="text-gray-400 hover:text-white transition">
                   Photo Albums
                 </Link>
               </li>
               <li>
-                <Link to="/category" className="text-gray-400 hover:text-white transition">
+                <Link to="/" className="text-gray-400 hover:text-white transition">
                   Keychains
                 </Link>
               </li>

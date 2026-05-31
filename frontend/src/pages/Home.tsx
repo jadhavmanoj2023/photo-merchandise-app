@@ -1,57 +1,16 @@
 import { Link } from 'react-router-dom';
-import ProductCard from '../components/ProductCard';
-import { products } from '../data/products';
+import { mainCategories } from '../data/catalog';
 
 export default function Home() {
-  const bestSellers = products.slice(0, 5);
-
-  const categories = [
-    {
-      name: 'Premium Acrylic Photos',
-      image: 'https://images.unsplash.com/photo-1509048191080-d2984bad6ae5?w=500',
-    },
-    {
-      name: 'Framed Acrylic Photos',
-      image: 'https://images.unsplash.com/photo-1582139329536-e7284fece509?w=400',
-    },
-    {
-      name: 'Wall Clocks',
-      image: 'https://images.unsplash.com/photo-1509048191080-d2984bad6ae5?w=400',
-    },
-    {
-      name: 'Acrylic Cut Outs',
-      image: 'https://images.unsplash.com/photo-1549298240-0d8e60513026?w=400',
-    },
-    {
-      name: 'Name Plates',
-      image: 'https://images.unsplash.com/photo-1618172193622-ae2d025f4032?w=400',
-    },
-    {
-      name: 'Fridge Magnets',
-      image: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=400',
-    },
-    {
-      name: 'Mini Photo Gallery Set',
-      image: 'https://images.unsplash.com/photo-1533090161767-e6ffed986c88?w=400',
-    },
-    {
-      name: 'Acrylic Photo Stand',
-      image: 'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?w=400',
-    },
-  ];
-
   return (
     <div>
-      {/* ── HERO ─────────────────────────────────────────────────────────── */}
+      {/* Hero — original layout */}
       <section className="relative overflow-hidden bg-[#0f0c29] min-h-[520px] flex items-center">
-        {/* Decorative background blobs */}
         <div className="absolute w-[520px] h-[520px] rounded-full bg-purple-700 opacity-20 -top-52 -left-28 pointer-events-none" />
         <div className="absolute w-[320px] h-[320px] rounded-full bg-pink-600 opacity-15 -bottom-24 left-60 pointer-events-none" />
         <div className="absolute w-[200px] h-[200px] rounded-full bg-violet-500 opacity-10 top-10 right-10 pointer-events-none" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row items-center gap-12 py-20 w-full">
-
-          {/* Left — copy */}
           <div className="flex-1 z-10">
             <span className="inline-flex items-center gap-2 bg-white/10 border border-white/20 text-purple-300 text-xs px-4 py-1.5 rounded-full mb-6">
               ✦ Premium quality · Delivered fast
@@ -70,20 +29,19 @@ export default function Home() {
 
             <div className="flex flex-wrap gap-3 mb-8">
               <Link
-                to="/category"
+                to={`/category/${mainCategories[0]?.slug ?? 'classic-frames'}`}
                 className="bg-purple-400 text-[#1e0038] font-semibold px-6 py-3 rounded-lg hover:bg-purple-300 transition text-sm"
               >
                 Start creating →
               </Link>
               <Link
-                to="/category"
+                to={`/category/${mainCategories[0]?.slug ?? 'classic-frames'}`}
                 className="flex items-center gap-2 border border-white/30 text-white px-5 py-3 rounded-lg hover:bg-white/10 transition text-sm"
               >
-                <span className="text-xs">▶</span> See how it works
+                <span className="text-xs">▶</span> Browse categories
               </Link>
             </div>
 
-            {/* Trust signals */}
             <div className="flex flex-wrap gap-6 text-xs text-white/45">
               <span className="flex items-center gap-1.5">
                 <span className="text-purple-400">✓</span> 7-day easy returns
@@ -97,18 +55,10 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Right — floating product card stack */}
-          {/*
-            KEY FIX: The main card wrapper does NOT have overflow-hidden.
-            Only the inner image div does. This lets the pills (.price-pill, .rating-pill)
-            visually escape the card boundary without being clipped.
-            The outer container is sized generously (340×380) so pills never touch the edge.
-          */}
           <div
             className="relative flex-shrink-0 z-10 hidden md:flex items-center justify-center"
             style={{ width: '340px', height: '380px' }}
           >
-            {/* Back-left card */}
             <div
               className="absolute rounded-2xl overflow-hidden opacity-70 border border-white/15 shadow-xl"
               style={{
@@ -126,7 +76,6 @@ export default function Home() {
               />
             </div>
 
-            {/* Back-right card */}
             <div
               className="absolute rounded-2xl overflow-hidden opacity-70 border border-white/15 shadow-xl"
               style={{
@@ -144,10 +93,7 @@ export default function Home() {
               />
             </div>
 
-            {/* Main front card wrapper — NO overflow-hidden here so pills show fully */}
             <div className="relative z-10" style={{ width: '208px', height: '256px' }}>
-
-              {/* Image container — overflow-hidden only on this inner div */}
               <div className="w-full h-full rounded-2xl overflow-hidden border border-white/20 shadow-2xl">
                 <img
                   src="https://images.unsplash.com/photo-1530268729831-4b0b9e170218?w=400"
@@ -156,7 +102,6 @@ export default function Home() {
                 />
               </div>
 
-              {/* Price pill — sits 18px below the card bottom, centered */}
               <div
                 className="absolute left-1/2 -translate-x-1/2 bg-white text-[#0f0c29] text-xs font-semibold px-5 py-2 rounded-full whitespace-nowrap shadow-lg"
                 style={{ bottom: '-18px' }}
@@ -164,7 +109,6 @@ export default function Home() {
                 From ₹499
               </div>
 
-              {/* Rating pill — sits 18px above the card top, right-aligned */}
               <div
                 className="absolute right-0 bg-[#1e1045] border border-white/20 text-yellow-400 text-xs px-3 py-2 rounded-full flex items-center gap-1.5 whitespace-nowrap shadow-md"
                 style={{ top: '-18px' }}
@@ -173,33 +117,45 @@ export default function Home() {
               </div>
             </div>
           </div>
-
         </div>
       </section>
-      {/* ── END HERO ─────────────────────────────────────────────────────── */}
 
       {/* Categories */}
-      <section className="py-16 bg-gray-50">
+      <section className="py-12 md:py-16 bg-[#f5f4f2]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-center mb-12 text-gray-800">
-            Browse Categories
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 text-center mb-2">
+            Shop by category
           </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {categories.map((category, index) => (
+          <p className="text-gray-500 text-center text-sm mb-10">
+            Six collections — frames, prints, collage & more
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {mainCategories.map((category) => (
               <Link
-                key={index}
-                to="/category"
-                className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition group"
+                key={category.slug}
+                to={`/category/${category.slug}`}
+                className="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden"
               >
-                <div className="aspect-square overflow-hidden bg-gray-100">
+                <div className="aspect-[4/3] overflow-hidden bg-gray-100">
                   <img
                     src={category.image}
                     alt={category.name}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                 </div>
-                <div className="p-4 text-center">
-                  <h3 className="font-semibold text-gray-800">{category.name}</h3>
+                <div className="p-6">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-[#e11d48]">
+                    {category.brand}
+                  </span>
+                  <h3 className="text-lg font-bold text-gray-900 mt-1 group-hover:text-[#e11d48] transition-colors">
+                    {category.name}
+                  </h3>
+                  <p className="text-sm text-gray-500 mt-2 line-clamp-2">{category.description}</p>
+                  <span className="inline-flex items-center gap-1 mt-4 text-sm font-semibold text-[#e11d48]">
+                    View frames
+                    <span className="group-hover:translate-x-1 transition-transform">→</span>
+                  </span>
                 </div>
               </Link>
             ))}
@@ -207,30 +163,25 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Best Sellers */}
-      <section className="py-16">
+      {/* Trust strip */}
+      <section className="bg-white border-t border-gray-100 py-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-center mb-12 text-gray-800">
-            Best Sellers
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {bestSellers.map((product) => (
-              <ProductCard
-                key={product.id}
-                id={product.id}
-                name={product.name}
-                price={product.price}
-                image={product.image}
-              />
-            ))}
-          </div>
-          <div className="text-center mt-12">
-            <Link
-              to="/category"
-              className="inline-block bg-blue-700 text-white px-8 py-3 rounded-lg hover:bg-blue-800 transition"
-            >
-              View All Products
-            </Link>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+            <div className="p-4">
+              <div className="text-2xl mb-2">🚚</div>
+              <h3 className="font-semibold text-gray-900 text-sm">Free shipping</h3>
+              <p className="text-xs text-gray-500 mt-1">On all orders across India</p>
+            </div>
+            <div className="p-4">
+              <div className="text-2xl mb-2">↩️</div>
+              <h3 className="font-semibold text-gray-900 text-sm">30-day returns</h3>
+              <p className="text-xs text-gray-500 mt-1">Hassle-free guarantee</p>
+            </div>
+            <div className="p-4">
+              <div className="text-2xl mb-2">🔒</div>
+              <h3 className="font-semibold text-gray-900 text-sm">100% secure</h3>
+              <p className="text-xs text-gray-500 mt-1">Encrypted checkout</p>
+            </div>
           </div>
         </div>
       </section>

@@ -1,26 +1,16 @@
-import { useParams, useNavigate } from 'react-router-dom';
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { useDispatch } from 'react-redux';
 import { addToCart } from '../store/cartSlice';
 import { frameTemplates, FrameTemplate } from '../data/frameTemplates';
+import {
+  getCatalogProduct,
+  getCategoryBySlug,
+  getProductsByCategory,
+  SizeOption,
+} from '../data/catalog';
 import FrameThumbnail from '../components/FrameThumbnail';
-
-// ─── Size options by aspect ratio group ──────────────────────────────────────
-
-const getSizes = (ar: number) => {
-  if (ar < 0.85) {
-    // Portrait
-    return ['5×7"', '8×10"', '11×14"', '12×16"', '16×20"'];
-  } else if (ar > 1.15) {
-    // Landscape
-    return ['7×5"', '10×8"', '14×11"', '16×12"', '20×15"'];
-  } else {
-    // Square / circle
-    return ['6×6"', '8×8"', '10×10"', '12×12"', '16×16"'];
-  }
-};
-
-const thicknesses = ['3mm', '5mm', '8mm'];
+import Breadcrumbs from '../components/Breadcrumbs';
 
 // ─── Live frame canvas ────────────────────────────────────────────────────────
 
@@ -335,32 +325,62 @@ function FrameCanvas({
 // ─── Main FrameCustomizer Page ────────────────────────────────────────────────
 
 export default function FrameCustomizer() {
-  const { frameId } = useParams<{ frameId: string }>();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const frame = frameTemplates.find((f) => f.id === frameId);
+  const catalogProduct = id ? getCatalogProduct(id) : undefined;
+  const frame = catalogProduct
+    ? frameTemplates.find((f) => f.id === catalogProduct.frameTemplateId)
+    : undefined;
+  const category = catalogProduct ? getCategoryBySlug(catalogProduct.categorySlug) : undefined;
 
-  const [slots, setSlots] = useState<string[]>(Array(frame?.photoSlots ?? 1).fill(''));
+  const slotCount = frame?.photoSlots ?? 1;
+
+  const [slots, setSlots] = useState<string[]>(() => Array(slotCount).fill(''));
   const [activeSlot, setActiveSlot] = useState(0);
-  const [zooms, setZooms] = useState<number[]>(Array(frame?.photoSlots ?? 1).fill(1));
-  const [offsets, setOffsets] = useState<{ x: number; y: number }[]>(
-    Array(frame?.photoSlots ?? 1).fill({ x: 0, y: 0 })
+  const [zooms, setZooms] = useState<number[]>(() => Array(slotCount).fill(1));
+  const [offsets, setOffsets] = useState<{ x: number; y: number }[]>(() =>
+    Array(slotCount).fill({ x: 0, y: 0 })
   );
   const [selectedSize, setSelectedSize] = useState('');
-  const [selectedThickness, setSelectedThickness] = useState('3mm');
+  const [selectedThickness, setSelectedThickness] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [activeTab, setActiveTab] = useState<'description' | 'reviews'>('description');
+  const [pincode, setPincode] = useState('');
+  const [deliveryDate, setDeliveryDate] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Related frames (same category)
-  const relatedFrames = frame
-    ? frameTemplates.filter((f) => f.category === frame.category && f.id !== frame.id).slice(0, 6)
+  const relatedProducts = catalogProduct
+    ? getProductsByCategory(catalogProduct.categorySlug)
+        .filter((p) => p.id !== catalogProduct.id)
+        .slice(0, 6)
     : [];
 
   useEffect(() => {
-    if (frame) setSelectedSize(getSizes(frame.aspectRatio)[0]);
-  }, [frame]);
+    if (!frame) return;
+    const n = frame.photoSlots;
+    setSlots(Array(n).fill(''));
+    setZooms(Array(n).fill(1));
+    setOffsets(Array(n).fill({ x: 0, y: 0 }));
+    setActiveSlot(0);
+  }, [frame?.id, frame?.photoSlots]);
+
+  useEffect(() => {
+    if (!catalogProduct) return;
+    const firstAvailable = catalogProduct.sizes.find((s) => s.available);
+    if (firstAvailable) setSelectedSize(firstAvailable.label);
+    if (catalogProduct.thicknesses[0]) setSelectedThickness(catalogProduct.thicknesses[0]);
+  }, [catalogProduct?.id]);
+
+  const selectedSizeOption: SizeOption | undefined = useMemo(
+    () => catalogProduct?.sizes.find((s) => s.label === selectedSize),
+    [catalogProduct, selectedSize]
+  );
+
+  const unitPrice = selectedSizeOption?.price ?? catalogProduct?.price ?? 0;
+  const totalPrice = unitPrice * quantity;
 
   const handleDrag = useCallback((slotIndex: number, dx: number, dy: number) => {
     setOffsets((prev) => {
@@ -396,7 +416,7 @@ export default function FrameCustomizer() {
   };
 
   const handleAddToCart = () => {
-    if (!frame) return;
+    if (!frame || !catalogProduct) return;
     const missingSlot = slots.findIndex((s) => !s);
     if (missingSlot >= 0) {
       alert(`Please upload a photo for slot ${missingSlot + 1}`);
@@ -404,9 +424,9 @@ export default function FrameCustomizer() {
     }
     dispatch(
       addToCart({
-        productId: frame.id,
-        productName: `${frame.name} · ${selectedSize} · ${selectedThickness}`,
-        price: 999,
+        productId: catalogProduct.id,
+        productName: `${catalogProduct.name} · ${selectedSize} · ${selectedThickness}`,
+        price: unitPrice,
         quantity,
         uploadedImageUrl: slots[0],
       })
@@ -414,33 +434,45 @@ export default function FrameCustomizer() {
     alert('Added to cart!');
   };
 
-  if (!frame) {
+  const checkDelivery = () => {
+    if (pincode.length !== 6) {
+      alert('Please enter a valid 6-digit pincode');
+      return;
+    }
+    const d = new Date();
+    d.setDate(d.getDate() + 4);
+    setDeliveryDate(
+      d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+    );
+  };
+
+  if (!catalogProduct || !frame) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-16 text-center">
-        <p className="text-gray-500">Frame not found.</p>
-        <button onClick={() => navigate('/frames')} className="mt-4 text-blue-600 hover:underline">
-          ← Back to frames
-        </button>
+        <p className="text-gray-500">Product not found.</p>
+        <Link to="/" className="mt-4 inline-block text-[#e11d48] hover:underline">
+          ← Back to home
+        </Link>
       </div>
     );
   }
 
-  const sizes = getSizes(frame.aspectRatio);
   const allSlotsUploaded = slots.every((s) => !!s);
   const currentZoom = zooms[activeSlot];
+  const showAcrylicExtras =
+    catalogProduct.categorySlug === 'acrylic-prints' || catalogProduct.categorySlug === 'collage';
 
   return (
-    <div className="min-h-screen bg-[#f7f5f2]">
-      {/* Breadcrumb */}
+    <div className="min-h-screen bg-[#f5f4f2]">
       <div className="bg-white border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center gap-2 text-sm text-gray-500">
-          <button onClick={() => navigate('/frames')} className="hover:text-gray-900 transition">
-            ← All Frames
-          </button>
-          <span>/</span>
-          <span className="text-gray-400">{frame.category}</span>
-          <span>/</span>
-          <span className="text-gray-800 font-medium">{frame.name}</span>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+          <Breadcrumbs
+            items={[
+              { label: 'Home', to: '/' },
+              { label: category?.name ?? 'Category', to: `/category/${catalogProduct.categorySlug}` },
+              { label: catalogProduct.name },
+            ]}
+          />
         </div>
       </div>
 
@@ -449,10 +481,9 @@ export default function FrameCustomizer() {
 
           {/* ── LEFT: Live Preview ── */}
           <div className="flex flex-col gap-5">
-            {/* Canvas */}
-            <div className="bg-white rounded-3xl shadow-md p-8 flex items-center justify-center"
-              style={{ minHeight: 360 }}>
-              <div style={{ width: '100%', maxWidth: 380 }}>
+            <div className="bg-[#eceae6] rounded-2xl p-6 md:p-8 flex items-center justify-center relative"
+              style={{ minHeight: 380 }}>
+              <div style={{ width: '100%', maxWidth: 400 }}>
                 <FrameCanvas
                   frame={frame}
                   slots={slots}
@@ -460,10 +491,30 @@ export default function FrameCustomizer() {
                   zooms={zooms}
                   offsets={offsets}
                   onDrag={handleDrag}
-                  onSlotClick={setActiveSlot}
+                  onSlotClick={(i) => {
+                    setActiveSlot(i);
+                    if (!slots[i]) fileInputRef.current?.click();
+                  }}
                 />
               </div>
+              {!slots[activeSlot] && (
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="absolute inset-0 m-auto w-fit h-fit px-6 py-3 bg-[#e11d48] text-white text-xs font-bold tracking-wider rounded-lg shadow-lg hover:bg-[#be123c] transition z-10"
+                  style={{ maxWidth: 'calc(100% - 3rem)' }}
+                >
+                  SELECT PHOTO
+                </button>
+              )}
             </div>
+
+            <button
+              type="button"
+              className="w-full py-3 bg-white border border-gray-200 rounded-xl text-sm text-gray-600 font-medium flex items-center justify-center gap-2 hover:bg-gray-50 transition"
+            >
+              <span>📦</span> Show 3D Preview
+            </button>
 
             {/* Zoom controls — show when active slot has an image */}
             {slots[activeSlot] && (
@@ -477,7 +528,7 @@ export default function FrameCustomizer() {
                       setZooms((p) => { const n = [...p]; n[activeSlot] = 1; return n; });
                       setOffsets((p) => { const n = [...p]; n[activeSlot] = { x: 0, y: 0 }; return n; });
                     }}
-                    className="text-xs text-blue-600 hover:underline"
+                    className="text-xs text-[#e11d48] hover:underline"
                   >
                     Reset
                   </button>
@@ -491,7 +542,7 @@ export default function FrameCustomizer() {
                     type="range" min={50} max={300}
                     value={Math.round(currentZoom * 100)}
                     onChange={(e) => setZooms((p) => { const n = [...p]; n[activeSlot] = parseInt(e.target.value) / 100; return n; })}
-                    className="flex-1 accent-blue-700"
+                    className="flex-1 accent-[#e11d48]"
                   />
                   <button
                     onClick={() => setZooms((p) => { const n = [...p]; n[activeSlot] = Math.min(3, +(p[activeSlot] + 0.1).toFixed(1)); return n; })}
@@ -514,7 +565,7 @@ export default function FrameCustomizer() {
                       onClick={() => { setActiveSlot(i); fileInputRef.current?.click(); }}
                       className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition border-2 ${
                         activeSlot === i
-                          ? 'border-blue-600 bg-blue-50 text-blue-700'
+                          ? 'border-[#e11d48] bg-red-50 text-[#e11d48]'
                           : 'border-gray-200 text-gray-600 hover:border-gray-400'
                       }`}
                     >
@@ -530,25 +581,28 @@ export default function FrameCustomizer() {
               </div>
             )}
 
-            {/* Related frames */}
-            {relatedFrames.length > 0 && (
+            {relatedProducts.length > 0 && (
               <div>
                 <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
-                  More {frame.category} Styles
+                  More in {category?.name}
                 </p>
                 <div className="flex gap-3 overflow-x-auto pb-1">
-                  {relatedFrames.map((rf) => (
-                    <button
-                      key={rf.id}
-                      onClick={() => navigate(`/frame-customizer/${rf.id}`)}
-                      className="flex-shrink-0 bg-white rounded-xl p-3 shadow-sm hover:shadow-md transition border border-transparent hover:border-gray-200 flex flex-col items-center gap-2"
-                    >
-                      <FrameThumbnail frame={rf} size={70} />
-                      <span className="text-[10px] text-gray-500 font-medium text-center leading-tight max-w-[70px]">
-                        {rf.name}
-                      </span>
-                    </button>
-                  ))}
+                  {relatedProducts.map((rp) => {
+                    const tpl = frameTemplates.find((f) => f.id === rp.frameTemplateId);
+                    return (
+                      <button
+                        key={rp.id}
+                        type="button"
+                        onClick={() => navigate(`/product/${rp.id}`)}
+                        className="flex-shrink-0 bg-white rounded-xl p-3 shadow-sm hover:shadow-md transition border border-transparent hover:border-gray-200 flex flex-col items-center gap-2"
+                      >
+                        {tpl && <FrameThumbnail frame={tpl} size={70} />}
+                        <span className="text-[10px] text-gray-500 font-medium text-center leading-tight max-w-[80px]">
+                          {rp.name}
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -557,14 +611,23 @@ export default function FrameCustomizer() {
           {/* ── RIGHT: Controls ── */}
           <div className="flex flex-col gap-6">
 
-            {/* Title */}
             <div>
-              <span className="text-xs font-bold uppercase tracking-widest text-red-500 bg-red-50 px-3 py-1 rounded-full">
-                {frame.category}
+              <span className="text-xs font-bold uppercase tracking-widest text-[#e11d48] bg-red-50 px-3 py-1 rounded-full">
+                {category?.brand}
               </span>
-              <h1 className="text-3xl font-bold text-gray-900 mt-3">{frame.name}</h1>
-              <p className="text-2xl font-bold text-gray-800 mt-1">₹999 <span className="text-sm text-gray-400 line-through font-normal">₹1,999</span></p>
-              <p className="text-xs text-green-600 font-semibold mt-1">✓ Free Shipping · 30-Day Returns · 100% Secure</p>
+              <h1 className="text-2xl md:text-3xl font-bold text-[#1e3a5f] mt-3">{catalogProduct.name}</h1>
+              <div className="flex items-baseline gap-3 mt-2">
+                <p className="text-2xl font-bold text-[#e11d48]">₹{unitPrice.toLocaleString()}</p>
+                {catalogProduct.originalPrice && (
+                  <p className="text-sm text-gray-400 line-through">₹{catalogProduct.originalPrice.toLocaleString()}</p>
+                )}
+              </div>
+              {catalogProduct.stockLeft != null && (
+                <p className="text-xs font-semibold text-amber-600 mt-2">
+                  Only {catalogProduct.stockLeft} left!
+                </p>
+              )}
+              <p className="text-sm text-gray-500 mt-3 leading-relaxed">{catalogProduct.shortDescription ?? catalogProduct.description}</p>
             </div>
 
             {/* Upload */}
@@ -579,10 +642,10 @@ export default function FrameCustomizer() {
                 onDragLeave={() => setIsDragOver(false)}
                 className={`relative border-2 border-dashed rounded-2xl p-5 text-center cursor-pointer transition-all ${
                   isDragOver
-                    ? 'border-blue-500 bg-blue-50'
+                    ? 'border-[#e11d48] bg-red-50'
                     : slots[activeSlot]
                     ? 'border-green-400 bg-green-50'
-                    : 'border-gray-300 hover:border-blue-400 hover:bg-gray-50'
+                    : 'border-gray-300 hover:border-[#e11d48] hover:bg-gray-50'
                 }`}
               >
                 {slots[activeSlot] ? (
@@ -617,37 +680,42 @@ export default function FrameCustomizer() {
               <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
             </div>
 
-            {/* Size */}
             <div>
               <h3 className="text-base font-semibold text-gray-800 mb-3">Size (Inch)</h3>
               <div className="flex flex-wrap gap-2">
-                {sizes.map((size) => (
+                {catalogProduct.sizes.map((size) => (
                   <button
-                    key={size}
-                    onClick={() => setSelectedSize(size)}
-                    className={`px-4 py-2 rounded-xl text-sm font-medium border-2 transition ${
-                      selectedSize === size
-                        ? 'border-red-500 bg-red-50 text-red-600'
+                    key={size.label}
+                    type="button"
+                    disabled={!size.available}
+                    onClick={() => size.available && setSelectedSize(size.label)}
+                    className={`px-4 py-2 rounded-full text-sm font-medium border-2 transition ${
+                      !size.available
+                        ? 'border-gray-100 text-gray-300 cursor-not-allowed'
+                        : selectedSize === size.label
+                        ? 'border-[#e11d48] bg-red-50 text-[#e11d48]'
                         : 'border-gray-200 text-gray-600 hover:border-gray-400'
                     }`}
                   >
-                    {size}
+                    {size.label}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Thickness */}
             <div>
-              <h3 className="text-base font-semibold text-gray-800 mb-3">Thickness</h3>
-              <div className="flex gap-2">
-                {thicknesses.map((t) => (
+              <h3 className="text-base font-semibold text-gray-800 mb-3">
+                {showAcrylicExtras ? 'Thickness (mm)' : 'Finish'}
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {catalogProduct.thicknesses.map((t) => (
                   <button
                     key={t}
+                    type="button"
                     onClick={() => setSelectedThickness(t)}
-                    className={`px-4 py-2 rounded-xl text-sm font-medium border-2 transition ${
+                    className={`px-4 py-2 rounded-full text-sm font-medium border-2 transition ${
                       selectedThickness === t
-                        ? 'border-red-500 bg-red-50 text-red-600'
+                        ? 'border-[#e11d48] bg-red-50 text-[#e11d48]'
                         : 'border-gray-200 text-gray-600 hover:border-gray-400'
                     }`}
                   >
@@ -657,16 +725,18 @@ export default function FrameCustomizer() {
               </div>
             </div>
 
-            {/* Mounting notice */}
-            <div className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-2xl px-4 py-3">
-              <svg className="w-5 h-5 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-              <div>
-                <p className="text-xs font-bold text-green-700 uppercase tracking-wide">Easy Mount Included</p>
-                <p className="text-xs text-green-600">Adhesive hooks — no drilling needed</p>
+            {showAcrylicExtras && (
+              <div className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-2xl px-4 py-3">
+                <span className="text-lg">⚡</span>
+                <div className="flex-1">
+                  <p className="text-xs font-bold text-green-800 uppercase tracking-wide">
+                    Easy mount included
+                  </p>
+                  <p className="text-xs text-green-700">Adhesive mounting hooks included — no drilling</p>
+                </div>
+                <span className="text-green-600">✓</span>
               </div>
-            </div>
+            )}
 
             {/* Quantity */}
             <div>
@@ -684,21 +754,109 @@ export default function FrameCustomizer() {
               </div>
             </div>
 
-            {/* Add to Cart */}
             <button
+              type="button"
               onClick={handleAddToCart}
-              className={`w-full py-4 rounded-2xl text-base font-bold transition-all flex items-center justify-center gap-2 ${
+              className={`w-full py-4 rounded-xl text-base font-bold transition-all flex items-center justify-center gap-2 ${
                 allSlotsUploaded
-                  ? 'bg-red-600 hover:bg-red-700 text-white shadow-lg shadow-red-200 hover:-translate-y-0.5'
+                  ? 'bg-[#e11d48] hover:bg-[#be123c] text-white shadow-lg shadow-red-200'
                   : 'bg-gray-200 text-gray-400 cursor-not-allowed'
               }`}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2 5h12" />
               </svg>
-              {allSlotsUploaded ? `Add to Cart — ₹${(999 * quantity).toLocaleString()}` : `Upload ${frame.photoSlots > 1 ? 'all photos' : 'a photo'} to continue`}
+              {allSlotsUploaded
+                ? `Add to Cart — ₹${totalPrice.toLocaleString()}`
+                : `Upload ${frame.photoSlots > 1 ? 'all photos' : 'a photo'} to continue`}
             </button>
+
+            <div className="grid grid-cols-3 gap-3 pt-2">
+              {[
+                { icon: '🚚', title: 'Free Shipping', sub: 'Across India' },
+                { icon: '↩️', title: '30-Day Returns', sub: 'Hassle-free' },
+                { icon: '🔒', title: '100% Secure', sub: 'Encrypted checkout' },
+              ].map((badge) => (
+                <div key={badge.title} className="bg-gray-50 rounded-xl p-3 text-center">
+                  <div className="text-lg mb-1">{badge.icon}</div>
+                  <p className="text-[10px] font-bold text-gray-800">{badge.title}</p>
+                  <p className="text-[9px] text-gray-500">{badge.sub}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="border-t border-gray-100 pt-6">
+              <h3 className="text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                <span>📍</span> Check estimated delivery
+              </h3>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={6}
+                  placeholder="Pincode"
+                  value={pincode}
+                  onChange={(e) => setPincode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  className="flex-1 border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#e11d48]/30"
+                />
+                <button
+                  type="button"
+                  onClick={checkDelivery}
+                  className="px-5 py-2 bg-[#e11d48] text-white text-sm font-semibold rounded-lg hover:bg-[#be123c] transition"
+                >
+                  Check
+                </button>
+              </div>
+              {deliveryDate && (
+                <p className="mt-3 text-sm text-violet-700 bg-violet-50 border border-violet-100 rounded-lg px-4 py-2.5">
+                  🚚 Expected delivery by {deliveryDate}
+                </p>
+              )}
+            </div>
           </div>
+        </div>
+
+        {/* Description & reviews */}
+        <div className="mt-16 border-t border-gray-200 pt-8">
+          <div className="flex gap-8 border-b border-gray-200 mb-6">
+            {(['description', 'reviews'] as const).map((tab) => (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => setActiveTab(tab)}
+                className={`pb-3 text-sm font-semibold capitalize transition border-b-2 -mb-px ${
+                  activeTab === tab
+                    ? 'border-[#e11d48] text-[#e11d48]'
+                    : 'border-transparent text-gray-500 hover:text-gray-800'
+                }`}
+              >
+                {tab === 'reviews' ? 'Reviews (562)' : 'Description'}
+              </button>
+            ))}
+          </div>
+
+          {activeTab === 'description' ? (
+            <div className="bg-white border border-gray-100 rounded-2xl p-6 md:p-8">
+              <div className="flex justify-between items-start mb-4">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-[#e11d48]">
+                  Product details
+                </p>
+                <span className="text-xs font-bold text-gray-400">{category?.brand}</span>
+              </div>
+              <p className="text-gray-600 text-sm leading-relaxed mb-6">{catalogProduct.description}</p>
+              <h4 className="font-bold text-gray-900 mb-3">Why choose this frame?</h4>
+              <ul className="text-sm text-gray-600 space-y-2 list-disc pl-5">
+                <li>Quick dispatch from Jaipur / Bengaluru</li>
+                <li>UV-resistant print with vivid colours</li>
+                <li>Secure packaging for safe delivery</li>
+                <li>Customise size and finish before checkout</li>
+              </ul>
+            </div>
+          ) : (
+            <div className="bg-white border border-gray-100 rounded-2xl p-8 text-center text-gray-500 text-sm">
+              Customer reviews coming soon.
+            </div>
+          )}
         </div>
       </div>
     </div>
