@@ -14,7 +14,7 @@ export default function FrameTypeCard({ product }: Props) {
     <article className="bg-white rounded-2xl shadow-sm hover:shadow-lg transition-shadow duration-300 overflow-hidden flex flex-col">
       <div className="aspect-square bg-[#f0eeeb] flex items-center justify-center p-6">
         {template ? (
-          <FrameThumbnail frame={template} size={200} />
+          <FrameThumbnail frame={template} fitBox={200} />
         ) : (
           <img
             src={product.image}

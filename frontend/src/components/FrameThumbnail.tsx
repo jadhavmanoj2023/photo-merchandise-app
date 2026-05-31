@@ -2,13 +2,32 @@ import { FrameTemplate } from '../data/frameTemplates';
 
 interface Props {
   frame: FrameTemplate;
+  /** Target width in px (used when fitBox is not set) */
   size?: number;
-  uploadedImage?: string; // optional: show user's photo inside
+  /** Fit entire frame inside a square box without stretching */
+  fitBox?: number;
+  uploadedImage?: string;
 }
 
-export default function FrameThumbnail({ frame, size = 180, uploadedImage }: Props) {
+function getDimensions(frame: FrameTemplate, size: number, fitBox?: number) {
+  const ar = frame.aspectRatio; // width / height
+  if (fitBox) {
+    if (ar >= 1) {
+      return { w: fitBox, h: Math.round(fitBox / ar) };
+    }
+    return { w: Math.round(fitBox * ar), h: fitBox };
+  }
   const w = size;
-  const h = Math.round(size / frame.aspectRatio);
+  return { w, h: Math.round(w / ar) };
+}
+
+export default function FrameThumbnail({
+  frame,
+  size = 180,
+  fitBox,
+  uploadedImage,
+}: Props) {
+  const { w, h } = getDimensions(frame, size, fitBox);
 
   const bw = frame.borderWidth;
   const mw = frame.matWidth ?? 0;
@@ -93,14 +112,16 @@ export default function FrameThumbnail({ frame, size = 180, uploadedImage }: Pro
     L ${w - bw},${h - bw}
     L ${bw},${h - bw} Z`;
 
-  return (
+  const svg = (
     <svg
       viewBox={`0 0 ${w} ${h}`}
       width={w}
       height={h}
       xmlns="http://www.w3.org/2000/svg"
       xmlnsXlink="http://www.w3.org/1999/xlink"
-      style={{ display: 'block', maxWidth: '100%', height: 'auto' }}
+      preserveAspectRatio="xMidYMid meet"
+      style={{ display: 'block', flexShrink: 0 }}
+      aria-hidden
     >
       <defs>
         {uploadedImage && (
@@ -299,4 +320,17 @@ export default function FrameThumbnail({ frame, size = 180, uploadedImage }: Pro
       )}
     </svg>
   );
+
+  if (fitBox) {
+    return (
+      <div
+        className="flex items-center justify-center shrink-0"
+        style={{ width: fitBox, height: fitBox }}
+      >
+        {svg}
+      </div>
+    );
+  }
+
+  return svg;
 }

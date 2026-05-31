@@ -1,6 +1,10 @@
 import { Link } from 'react-router-dom';
 import { mainCategories } from '../data/catalog';
 
+function scrollToCategories() {
+  document.getElementById('shop-categories')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
 export default function Home() {
   return (
     <div>
@@ -34,12 +38,13 @@ export default function Home() {
               >
                 Start creating →
               </Link>
-              <Link
-                to={`/category/${mainCategories[0]?.slug ?? 'classic-frames'}`}
+              <button
+                type="button"
+                onClick={scrollToCategories}
                 className="flex items-center gap-2 border border-white/30 text-white px-5 py-3 rounded-lg hover:bg-white/10 transition text-sm"
               >
-                <span className="text-xs">▶</span> Browse categories
-              </Link>
+                <span className="text-xs">▶</span> Explore categories
+              </button>
             </div>
 
             <div className="flex flex-wrap gap-6 text-xs text-white/45">
@@ -121,40 +126,42 @@ export default function Home() {
       </section>
 
       {/* Categories */}
-      <section className="py-12 md:py-16 bg-[#f5f4f2]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 text-center mb-2">
+      <section id="shop-categories" className="py-10 md:py-12 bg-[#f5f4f2] scroll-mt-20">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-xl md:text-2xl font-bold text-gray-900 text-center mb-1.5">
             Shop by category
           </h2>
-          <p className="text-gray-500 text-center text-sm mb-10">
+          <p className="text-gray-500 text-center text-xs md:text-sm mb-8">
             Six collections — frames, prints, collage & more
           </p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
             {mainCategories.map((category) => (
               <Link
                 key={category.slug}
                 to={`/category/${category.slug}`}
-                className="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden"
+                className="group bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
               >
-                <div className="aspect-[4/3] overflow-hidden bg-gray-100">
+                <div className="aspect-[3/2] overflow-hidden bg-gray-100">
                   <img
                     src={category.image}
                     alt={category.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                 </div>
-                <div className="p-6">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-[#e11d48]">
+                <div className="p-3 md:p-4">
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-[#e11d48]">
                     {category.brand}
                   </span>
-                  <h3 className="text-lg font-bold text-gray-900 mt-1 group-hover:text-[#e11d48] transition-colors">
+                  <h3 className="text-sm md:text-base font-bold text-gray-900 mt-0.5 group-hover:text-[#e11d48] transition-colors leading-snug">
                     {category.name}
                   </h3>
-                  <p className="text-sm text-gray-500 mt-2 line-clamp-2">{category.description}</p>
-                  <span className="inline-flex items-center gap-1 mt-4 text-sm font-semibold text-[#e11d48]">
+                  <p className="text-[11px] md:text-xs text-gray-500 mt-1 line-clamp-2 leading-relaxed hidden sm:block">
+                    {category.description}
+                  </p>
+                  <span className="inline-flex items-center gap-1 mt-2 text-xs font-semibold text-[#e11d48]">
                     View frames
-                    <span className="group-hover:translate-x-1 transition-transform">→</span>
+                    <span className="group-hover:translate-x-0.5 transition-transform">→</span>
                   </span>
                 </div>
               </Link>

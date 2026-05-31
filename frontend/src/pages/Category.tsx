@@ -2,9 +2,15 @@ import { useParams, Link } from 'react-router-dom';
 import { getCategoryBySlug, getProductsByCategory } from '../data/catalog';
 import FrameTypeCard from '../components/FrameTypeCard';
 import Breadcrumbs from '../components/Breadcrumbs';
+import PhotoPrintCategory from './PhotoPrintCategory';
 
 export default function Category() {
   const { slug } = useParams<{ slug: string }>();
+
+  if (slug === 'photo-print') {
+    return <PhotoPrintCategory />;
+  }
+
   const category = slug ? getCategoryBySlug(slug) : undefined;
   const products = slug ? getProductsByCategory(slug) : [];
 

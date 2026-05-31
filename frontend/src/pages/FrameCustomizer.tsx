@@ -586,7 +586,7 @@ export default function FrameCustomizer() {
                 <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
                   More in {category?.name}
                 </p>
-                <div className="flex gap-3 overflow-x-auto pb-1">
+                <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1">
                   {relatedProducts.map((rp) => {
                     const tpl = frameTemplates.find((f) => f.id === rp.frameTemplateId);
                     return (
@@ -594,10 +594,12 @@ export default function FrameCustomizer() {
                         key={rp.id}
                         type="button"
                         onClick={() => navigate(`/product/${rp.id}`)}
-                        className="flex-shrink-0 bg-white rounded-xl p-3 shadow-sm hover:shadow-md transition border border-transparent hover:border-gray-200 flex flex-col items-center gap-2"
+                        className="flex-shrink-0 w-[7.5rem] bg-white rounded-xl p-3 shadow-sm hover:shadow-md transition border border-gray-100 hover:border-gray-200 flex flex-col items-center gap-2"
                       >
-                        {tpl && <FrameThumbnail frame={tpl} size={70} />}
-                        <span className="text-[10px] text-gray-500 font-medium text-center leading-tight max-w-[80px]">
+                        <div className="w-24 h-24 flex items-center justify-center bg-[#f0eeeb] rounded-lg">
+                          {tpl && <FrameThumbnail frame={tpl} fitBox={88} />}
+                        </div>
+                        <span className="text-[10px] text-gray-600 font-medium text-center leading-tight line-clamp-2 w-full">
                           {rp.name}
                         </span>
                       </button>
