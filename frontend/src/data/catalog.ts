@@ -337,55 +337,7 @@ export const catalogProducts: CatalogProduct[] = [
     thicknesses: ['3mm', '5mm', '8mm'],
   },
 
-  // Baby birth frames
-  {
-    id: 'baby-arch-portrait',
-    categorySlug: 'baby-birth',
-    name: 'Arch Baby Portrait Frame',
-    frameTemplateId: 'arch-portrait',
-    price: 899,
-    originalPrice: 1299,
-    description: 'Gentle arch shape — a sweet nursery centrepiece for your little one.',
-    image: 'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=500',
-    sizes: portraitSizes,
-    thicknesses: ['3mm', '5mm'],
-    stockLeft: 10,
-  },
-  {
-    id: 'baby-heart-frame',
-    categorySlug: 'baby-birth',
-    name: 'Heart Keepsake Baby Frame',
-    frameTemplateId: 'heart-frame',
-    price: 799,
-    originalPrice: 1199,
-    description: 'Heart-shaped frame for ultrasound photos and first snapshots.',
-    image: 'https://images.unsplash.com/photo-1555252337-9f8e92e65df9?w=500',
-    sizes: squareSizes,
-    thicknesses: ['3mm', '5mm'],
-  },
-  {
-    id: 'baby-balloon',
-    categorySlug: 'baby-birth',
-    name: 'Balloon Birth Announcement Frame',
-    frameTemplateId: 'dual-balloon',
-    price: 949,
-    description: 'Playful balloon shape — perfect for birth announcement photos.',
-    image: 'https://images.unsplash.com/photo-1584515934247-14f42fbb9b8b?w=500',
-    sizes: portraitSizes,
-    thicknesses: ['3mm', '5mm'],
-  },
-  {
-    id: 'baby-portrait-gold',
-    categorySlug: 'baby-birth',
-    name: 'Golden Baby Portrait Frame',
-    frameTemplateId: 'portrait-gold',
-    price: 999,
-    originalPrice: 1499,
-    description: 'Soft gold frame for milestone photos — first smile, first steps, and more.',
-    image: 'https://images.unsplash.com/photo-1555252337-9f8e92e65df9?w=500',
-    sizes: portraitSizes,
-    thicknesses: ['3mm', '5mm', '8mm'],
-  },
+  // (Baby birth frames use dedicated /baby-frame routes — see data/babyFrames.ts)
 ];
 
 export function getCategoryBySlug(slug: string): MainCategory | undefined {

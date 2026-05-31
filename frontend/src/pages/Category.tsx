@@ -3,12 +3,17 @@ import { getCategoryBySlug, getProductsByCategory } from '../data/catalog';
 import FrameTypeCard from '../components/FrameTypeCard';
 import Breadcrumbs from '../components/Breadcrumbs';
 import PhotoPrintCategory from './PhotoPrintCategory';
+import BabyBirthCategory from './BabyBirthCategory';
 
 export default function Category() {
   const { slug } = useParams<{ slug: string }>();
 
   if (slug === 'photo-print') {
     return <PhotoPrintCategory />;
+  }
+
+  if (slug === 'baby-birth') {
+    return <BabyBirthCategory />;
   }
 
   const category = slug ? getCategoryBySlug(slug) : undefined;

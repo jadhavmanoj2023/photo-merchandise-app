@@ -4,6 +4,7 @@ import Category from '../pages/Category';
 import ProductDetail from '../pages/ProductDetail';
 import PhotoPrintDetail from '../pages/PhotoPrintDetail';
 import PhotoPrintStudio from '../pages/PhotoPrintStudio';
+import BabyFrameDetail from '../pages/BabyFrameDetail';
 import Cart from '../pages/Cart';
 import Login from '../pages/Login';
 import Signup from '../pages/Signup';
@@ -18,6 +19,7 @@ export default function AppRoutes() {
       <Route path="/category/:slug" element={<Category />} />
       <Route path="/photo-print/:id" element={<PhotoPrintDetail />} />
       <Route path="/photo-print/:id/studio" element={<PhotoPrintStudio />} />
+      <Route path="/baby-frame/:id" element={<BabyFrameDetail />} />
       <Route path="/product/:id" element={<ProductDetail />} />
       <Route path="/category" element={<Navigate to="/" replace />} />
       <Route path="/frames" element={<Navigate to="/" replace />} />
