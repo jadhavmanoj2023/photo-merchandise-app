@@ -30,14 +30,14 @@ export interface BabyFrameProduct {
 }
 
 export const defaultBabyDetails: BabyFrameDetails = {
-  babyName: 'Agstya Roy',
-  birthDay: '21',
-  birthMonthYear: 'Aug 2024',
+  babyName: 'Shreyansh',
+  birthDay: '07',
+  birthMonthYear: 'Jun 2026',
   weight: '2.9 Kg',
   bloodGroup: 'B+',
   birthTime: '9:45 AM',
-  hospital: 'Sadar Hospital',
-  parentNames: 'Rahul + Priya',
+  hospital: 'sunrise Hospital',
+  parentNames: 'Shreya + shyam',
   photoTop: '',
   photoBottom: '',
 };

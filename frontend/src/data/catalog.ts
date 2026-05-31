@@ -39,7 +39,7 @@ export const mainCategories: MainCategory[] = [
   {
     slug: 'photo-print',
     name: 'Photo Print',
-    brand: 'Zoomin',
+    brand: 'PhotoMerch',
     description: 'Premium matte, glossy, and canvas prints in every size.',
     image: 'https://images.unsplash.com/photo-1542038784456-1ea8e935640e?w=600',
   },
